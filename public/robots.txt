@@ -1,0 +1,5 @@
+# VaultPDF Robots.txt
+User-agent: *
+Allow: /
+
+Sitemap: https://vaultpdf.vercel.app/sitemap.xml

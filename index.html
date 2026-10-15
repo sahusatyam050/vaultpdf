@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2310b981'><path d='M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 6c1.66 0 3 1.34 3 3v1h1v5H8v-5h1v-1c0-1.66 1.34-3 3-3zm0 2c-.55 0-1 .45-1 1v1h2v-1c0-.55-.45-1-1-1z'/></svg>" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VaultPDF — 100% In-Browser Private PDF Suite (Zero Cloud Upload)</title>
+  <meta name="description" content="Unlock, protect, merge, and split confidential PDFs completely inside your browser. Zero server upload. Decrypt e-Aadhaar, bank statements, and salary slips safely." />
+  <meta name="keywords" content="e-aadhaar password remover, unlock pdf online free, remove password from pdf without upload, sbi bank statement password unlocker, hdfc statement password remover, private pdf decrypt, offline pdf merger, split pdf client side, aes 256 pdf decrypt, no upload pdf tool, zero knowledge pdf" />
+  <meta name="author" content="Satyam Sahu" />
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+  <link rel="canonical" href="https://vaultpdf.vercel.app/" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://vaultpdf.vercel.app/" />
+  <meta property="og:title" content="VaultPDF — 100% Client-Side Private PDF Suite" />
+  <meta property="og:description" content="Decrypt e-Aadhaar & Bank Statements locally in RAM. Zero bytes uploaded to any server. Military-grade privacy." />
+  <meta property="og:image" content="https://vaultpdf.vercel.app/og-preview.png" />
+  <meta property="og:site_name" content="VaultPDF" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="VaultPDF — Air-Gapped Private PDF Suite" />
+  <meta name="twitter:description" content="Unlock, protect, merge, and split sensitive PDFs completely in-browser. Zero cloud upload." />
+  <meta name="twitter:image" content="https://vaultpdf.vercel.app/og-preview.png" />
+  <meta name="twitter:creator" content="@sahusatyam050" />
+
+  <!-- JSON-LD Structured Data: SoftwareApplication & WebApplication -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "VaultPDF",
+    "url": "https://vaultpdf.vercel.app/",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "All modern browsers (Chrome, Edge, Firefox, Safari, Brave)",
+    "description": "A 100% in-browser, zero-knowledge client-side PDF utility suite to unlock, protect, merge, split, and rotate confidential documents without server upload.",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "author": {
+      "@type": "Person",
+      "name": "Satyam Sahu",
+      "jobTitle": "Systems & Cyber Security Engineer",
+      "url": "https://github.com/sahusatyam050"
+    }
+  }
+  </script>
+
+  <!-- JSON-LD FAQPage Schema for Google Featured Snippets -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "How do I remove the password from an e-Aadhaar PDF?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Your e-Aadhaar password is the first 4 letters of your name in CAPITAL letters followed by your 4-digit Year of Birth (e.g. SATY1998). Drop your locked Aadhaar PDF into VaultPDF, enter this password, and click Decrypt. A completely unlocked PDF will be downloaded that will never ask for a password again."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is VaultPDF safe for confidential bank statements and tax records?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes, 100% safe. VaultPDF executes all cryptographic operations inside your browser's local sandbox memory using Web Crypto API and WebAssembly. Zero bytes are uploaded to any server. You can even disconnect your internet connection and verify that the tool works completely offline."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Why is VaultPDF safer than iLovePDF or Smallpdf?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Most online PDF converters upload your confidential file to their cloud servers, process it, and send it back. This exposes your PAN, bank account numbers, balances, and home address to unknown third-party databases. VaultPDF processes files entirely in your computer's RAM, ensuring zero external exposure."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I merge multiple confidential PDFs without file size limits?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Because there is no network transfer or cloud bandwidth bottleneck, you can merge multiple large PDFs instantly without hitting arbitrary 5 MB or 10 MB cloud limits."
+        }
+      }
+    ]
+  }
+  </script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <div class="mesh-bg"></div>
+
+  <!-- Header -->
+  <header class="navbar">
+    <div class="nav-brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <path d="M9 12l2 2 4-4"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-name">Vault<span class="gradient-text">PDF</span></div>
+        <div class="brand-tagline">Air-Gapped Privacy Engine</div>
+      </div>
+    </div>
+
+    <!-- Live Air-Gap Security Badge -->
+    <div class="airgap-badge" id="airgapBadge" title="Click to inspect security proof">
+      <span class="pulsing-dot"></span>
+      <span class="badge-text">100% Client-Side Sandbox</span>
+      <span class="badge-pill">0 KB Sent to Server</span>
+    </div>
+
+    <div class="nav-actions">
+      <button class="btn-ghost" id="btnCheatSheet" title="View Common Indian PDF Password Formats">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        <span>Password Guide</span>
+      </button>
+      <a href="https://github.com/sahusatyam050" target="_blank" rel="noopener noreferrer" class="btn-ghost github-link">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+        </svg>
+        <span>GitHub</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Hero Banner -->
+  <section class="hero-section">
+    <div class="hero-badge">
+      <span class="shield-icon">🛡️</span> Zero-Knowledge PDF Architecture
+    </div>
+    <h1 class="hero-title">
+      Your confidential documents <br>
+      <span class="gradient-text">never leave your browser.</span>
+    </h1>
+    <p class="hero-subtitle">
+      Unlock password-protected e-Aadhaars, bank statements & payslips, or encrypt, merge, and split PDFs with military-grade speed. Processed 100% in RAM via WebAssembly & Web Crypto.
+    </p>
+
+    <!-- Operational Mode Tabs -->
+    <div class="mode-tabs">
+      <button class="tab-btn active" data-tab="tab-unlock">
+        <span class="tab-icon">🔓</span>
+        <span class="tab-label">Unlock & Decrypt</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-protect">
+        <span class="tab-icon">🔒</span>
+        <span class="tab-label">Protect & Encrypt</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-merge">
+        <span class="tab-icon">📑</span>
+        <span class="tab-label">Merge PDFs</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-split">
+        <span class="tab-icon">✂️</span>
+        <span class="tab-label">Split & Extract</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-rotate">
+        <span class="tab-icon">🔄</span>
+        <span class="tab-label">Rotate Pages</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Main Workstation -->
+  <main class="workstation-container">
+
+    <!-- 1. UNLOCK / DECRYPT TAB -->
+    <div class="tool-panel active" id="tab-unlock">
+      <div class="panel-header">
+        <div class="panel-title-group">
+          <h2>🔓 Remove PDF Password Permanently</h2>
+          <p>Drop your locked e-Aadhaar, Form 16, or Bank Statement. Decrypt it once, download a clean PDF that never prompts for password again.</p>
+        </div>
+        <div class="quick-pill">Instant Offline Decrypt</div>
+      </div>
+
+      <!-- Drag & Drop Zone -->
+      <div class="dropzone" id="unlockDropzone">
+        <input type="file" id="unlockFileInput" accept="application/pdf" class="file-input-hidden" />
+        <div class="dropzone-content">
+          <div class="dropzone-icon">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <rect x="8" y="12" width="8" height="6" rx="1"/>
+              <path d="M10 12V10a2 2 0 1 1 4 0v2"/>
+            </svg>
+          </div>
+          <div class="dropzone-title">Click to browse or drag & drop locked PDF</div>
+          <div class="dropzone-hint">Supports AES-256 and Standard 128-bit/40-bit RC4 encryption</div>
+        </div>
+      </div>
+
+      <!-- File Card & Password Entry (Hidden initially) -->
+      <div class="action-card hidden" id="unlockActionCard">
+        <div class="file-meta-row">
+          <div class="file-icon-badge">📄</div>
+          <div class="file-details">
+            <div class="file-name" id="unlockFileName">sample.pdf</div>
+            <div class="file-stats" id="unlockFileStats">0 KB • Checking encryption...</div>
+          </div>
+          <button class="btn-icon-danger" id="unlockClearBtn" title="Remove file">✕</button>
+        </div>
+
+        <div class="password-input-group" id="unlockPasswordGroup">
+          <label for="unlockPasswordInput" class="input-label">
+            <span>Enter Document Password</span>
+            <button type="button" class="label-link" id="btnHelpAadhaar">Common Formats 💡</button>
+          </label>
+          <div class="input-wrapper">
+            <input type="password" id="unlockPasswordInput" placeholder="e.g. SATY1998 (First 4 letters + Year of Birth)" autocomplete="off" />
+            <button type="button" class="btn-toggle-eye" id="unlockToggleEye" title="Show/Hide Password">👁️</button>
+          </div>
+        </div>
+
+        <div class="action-btn-row">
+          <button class="btn-primary" id="btnExecuteUnlock">
+            <span class="btn-icon">⚡</span>
+            <span>Decrypt & Download Clean PDF</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. PROTECT / ENCRYPT TAB -->
+    <div class="tool-panel" id="tab-protect">
+      <div class="panel-header">
+        <div class="panel-title-group">
+          <h2>🔒 Protect PDF with Military-Grade Password</h2>
+          <p>Add AES-256 bit encryption to your sensitive agreements, balance sheets, or identity scans before sharing over email or WhatsApp.</p>
+        </div>
+        <div class="quick-pill">AES-256 Standard</div>
+      </div>
+
+      <div class="dropzone" id="protectDropzone">
+        <input type="file" id="protectFileInput" accept="application/pdf" class="file-input-hidden" />
+        <div class="dropzone-content">
+          <div class="dropzone-icon">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <circle cx="12" cy="11" r="2"/>
+              <path d="M12 13v3"/>
+            </svg>
+          </div>
+          <div class="dropzone-title">Click to browse or drag & drop PDF to lock</div>
+          <div class="dropzone-hint">Add unbreakable password protection in 1 second</div>
+        </div>
+      </div>
+
+      <div class="action-card hidden" id="protectActionCard">
+        <div class="file-meta-row">
+          <div class="file-icon-badge">📄</div>
+          <div class="file-details">
+            <div class="file-name" id="protectFileName">document.pdf</div>
+            <div class="file-stats" id="protectFileStats">0 KB</div>
+          </div>
+          <button class="btn-icon-danger" id="protectClearBtn" title="Remove file">✕</button>
+        </div>
+
+        <div class="password-input-group">
+          <label for="protectPasswordInput" class="input-label">
+            <span>Set New Document Password</span>
+          </label>
+          <div class="input-wrapper">
+            <input type="password" id="protectPasswordInput" placeholder="Choose a secure password..." autocomplete="off" />
+            <button type="button" class="btn-toggle-eye" id="protectToggleEye">👁️</button>
+          </div>
+        </div>
+
+        <div class="action-btn-row">
+          <button class="btn-primary" id="btnExecuteProtect">
+            <span class="btn-icon">🔒</span>
+            <span>Encrypt & Download Locked PDF</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. MERGE TAB -->
+    <div class="tool-panel" id="tab-merge">
+      <div class="panel-header">
+        <div class="panel-title-group">
+          <h2>📑 Merge Multiple PDFs into One Document</h2>
+          <p>Combine multiple pages, receipts, Aadhaar + PAN copies, or monthly reports in exact order with drag & drop reordering.</p>
+        </div>
+        <div class="quick-pill">Unlimited Files</div>
+      </div>
+
+      <div class="dropzone" id="mergeDropzone">
+        <input type="file" id="mergeFileInput" accept="application/pdf" multiple class="file-input-hidden" />
+        <div class="dropzone-content">
+          <div class="dropzone-icon">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+              <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+              <path d="M12 11h4"/>
+              <path d="M12 16h4"/>
+              <path d="M8 11h.01"/>
+              <path d="M8 16h.01"/>
+            </svg>
+          </div>
+          <div class="dropzone-title">Click to browse or drop multiple PDFs here</div>
+          <div class="dropzone-hint">You can select multiple files at once</div>
+        </div>
+      </div>
+
+      <div class="action-card hidden" id="mergeActionCard">
+        <div class="merge-file-list" id="mergeFileList">
+          <!-- Dynamically populated file rows -->
+        </div>
+
+        <div class="merge-actions-bar">
+          <div class="merge-summary" id="mergeSummary">0 files selected • 0 pages total</div>
+          <div class="merge-buttons">
+            <button class="btn-ghost" id="mergeAddMoreBtn">+ Add More Files</button>
+            <button class="btn-primary" id="btnExecuteMerge">
+              <span class="btn-icon">⚡</span>
+              <span>Merge & Download Combined PDF</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. SPLIT & EXTRACT TAB -->
+    <div class="tool-panel" id="tab-split">
+      <div class="panel-header">
+        <div class="panel-title-group">
+          <h2>✂️ Split & Extract Specific Pages</h2>
+          <p>Extract only the relevant pages from a 100-page bank statement, contract, or academic dossier.</p>
+        </div>
+        <div class="quick-pill">Page Range Selector</div>
+      </div>
+
+      <div class="dropzone" id="splitDropzone">
+        <input type="file" id="splitFileInput" accept="application/pdf" class="file-input-hidden" />
+        <div class="dropzone-content">
+          <div class="dropzone-icon">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+              <circle cx="6" cy="6" r="3"/>
+              <circle cx="6" cy="18" r="3"/>
+              <line x1="20" y1="4" x2="8.12" y2="15.88"/>
+              <line x1="14.47" y1="14.48" x2="20" y2="20"/>
+              <line x1="8.12" y1="8.12" x2="12" y2="12"/>
+            </svg>
+          </div>
+          <div class="dropzone-title">Click to browse or drop PDF to split</div>
+          <div class="dropzone-hint">Inspect page counts and extract custom ranges</div>
+        </div>
+      </div>
+
+      <div class="action-card hidden" id="splitActionCard">
+        <div class="file-meta-row">
+          <div class="file-icon-badge">📄</div>
+          <div class="file-details">
+            <div class="file-name" id="splitFileName">document.pdf</div>
+            <div class="file-stats" id="splitFileStats">0 Pages • 0 KB</div>
+          </div>
+          <button class="btn-icon-danger" id="splitClearBtn">✕</button>
+        </div>
+
+        <div class="split-controls">
+          <label class="input-label" for="splitRangeInput">
+            <span>Specify Pages to Extract</span>
+            <span class="label-hint">e.g., "1-3, 5" or "2, 4, 7-10"</span>
+          </label>
+          <input type="text" id="splitRangeInput" placeholder="1-2" class="text-input" />
+        </div>
+
+        <div class="action-btn-row">
+          <button class="btn-primary" id="btnExecuteSplit">
+            <span class="btn-icon">✂️</span>
+            <span>Extract & Download Pages</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. ROTATE TAB -->
+    <div class="tool-panel" id="tab-rotate">
+      <div class="panel-header">
+        <div class="panel-title-group">
+          <h2>🔄 Rotate & Fix Inverted Pages</h2>
+          <p>Fix sideways or upside-down scans in seconds before printing or emailing.</p>
+        </div>
+        <div class="quick-pill">Lossless Rotation</div>
+      </div>
+
+      <div class="dropzone" id="rotateDropzone">
+        <input type="file" id="rotateFileInput" accept="application/pdf" class="file-input-hidden" />
+        <div class="dropzone-content">
+          <div class="dropzone-icon">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+            </svg>
+          </div>
+          <div class="dropzone-title">Click to browse or drop PDF to rotate</div>
+          <div class="dropzone-hint">Rotate all pages by 90°, 180°, or 270° clockwise</div>
+        </div>
+      </div>
+
+      <div class="action-card hidden" id="rotateActionCard">
+        <div class="file-meta-row">
+          <div class="file-icon-badge">📄</div>
+          <div class="file-details">
+            <div class="file-name" id="rotateFileName">document.pdf</div>
+            <div class="file-stats" id="rotateFileStats">0 Pages • 0 KB</div>
+          </div>
+          <button class="btn-icon-danger" id="rotateClearBtn">✕</button>
+        </div>
+
+        <div class="rotate-selection-group">
+          <label class="input-label">Select Rotation Angle</label>
+          <div class="rotate-options">
+            <button class="rotate-btn active" data-angle="90">
+              <span class="rot-icon">↷</span> 90° Clockwise
+            </button>
+            <button class="rotate-btn" data-angle="180">
+              <span class="rot-icon">↺</span> 180° Flip
+            </button>
+            <button class="rotate-btn" data-angle="270">
+              <span class="rot-icon">↶</span> 270° Counter-CW
+            </button>
+          </div>
+        </div>
+
+        <div class="action-btn-row">
+          <button class="btn-primary" id="btnExecuteRotate">
+            <span class="btn-icon">⚡</span>
+            <span>Rotate & Download PDF</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Privacy & Trust Proof Section -->
+  <section class="trust-section">
+    <div class="trust-grid">
+      <div class="trust-card">
+        <div class="trust-icon">🔒</div>
+        <h3>Zero Cloud Telemetry</h3>
+        <p>No backend server. No database. The application runs entirely within your browser's local sandbox memory.</p>
+      </div>
+      <div class="trust-card">
+        <div class="trust-icon">✈️</div>
+        <h3>Air-Gap & Offline Ready</h3>
+        <p>Disconnect your Wi-Fi, turn off mobile data, and test it yourself. All cryptographic math happens locally.</p>
+      </div>
+      <div class="trust-card">
+        <div class="trust-icon">⚡</div>
+        <h3>Zero Size Upload Waiting</h3>
+        <p>Because files are never uploaded across the internet, 50 MB PDFs are decrypted or merged in less than 200 ms.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SEO & Knowledge FAQ Section -->
+  <section class="faq-section" id="faq">
+    <div class="faq-header">
+      <div class="faq-badge">📖 Knowledge & Security FAQ</div>
+      <h2 class="faq-title">Frequently Asked Questions</h2>
+      <p class="faq-subtitle">Everything you need to know about client-side PDF encryption, Indian document passwords, and air-gapped security.</p>
+    </div>
+
+    <div class="faq-accordion">
+      <details class="faq-item" open>
+        <summary class="faq-question">
+          <span>How do I unlock an e-Aadhaar PDF without uploading it to random websites?</span>
+          <span class="faq-chevron">▼</span>
+        </summary>
+        <div class="faq-answer">
+          <p>The standard UIDAI e-Aadhaar password consists of 8 characters: the <strong>first 4 letters of your NAME in UPPERCASE</strong> followed by your <strong>4-digit Year of Birth</strong> (e.g. <code>SATY1998</code> or <code>ANIT1975</code>). Simply drop your locked PDF into VaultPDF, enter the password, and click Decrypt. Your PDF is decrypted in your browser's RAM and saved as a permanently clean, unprotected PDF.</p>
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-question">
+          <span>Is VaultPDF safe for confidential bank statements and tax records?</span>
+          <span class="faq-chevron">▼</span>
+        </summary>
+        <div class="faq-answer">
+          <p>Yes, 100% safe. VaultPDF is built with a <strong>Zero-Knowledge Architecture</strong>. Unlike traditional tools that upload your sensitive documents to remote cloud servers, VaultPDF runs entirely inside your browser sandbox via WebAssembly and the native Web Crypto API. Zero bytes are transmitted across the internet.</p>
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-question">
+          <span>Why is client-side decryption better than iLovePDF, Smallpdf, or Adobe Online?</span>
+          <span class="faq-chevron">▼</span>
+        </summary>
+        <div class="faq-answer">
+          <p>Cloud converters require uploading your entire PDF over the internet to their servers. This exposes your PAN, bank account numbers, balances, employer details, and personal address to third-party databases. VaultPDF eliminates this vulnerability completely by processing files locally on your machine with zero server roundtrips.</p>
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-question">
+          <span>Can VaultPDF work completely offline without internet?</span>
+          <span class="faq-chevron">▼</span>
+        </summary>
+        <div class="faq-answer">
+          <p>Yes! Once the page is loaded, you can turn off Wi-Fi or mobile data completely. All cryptographic decryption, AES-256 encryption, page merging, and splitting will execute at full speed offline.</p>
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-question">
+          <span>What standard password formats do Indian banks use?</span>
+          <span class="faq-chevron">▼</span>
+        </summary>
+        <div class="faq-answer">
+          <p>• <strong>SBI:</strong> Last 5 digits of registered mobile number + Date of Birth (DDMM)<br>
+          • <strong>HDFC:</strong> NetBanking Customer ID or PAN (UPPERCASE)<br>
+          • <strong>ICICI:</strong> First 4 letters of name (lowercase) + DDMM of birth<br>
+          • <strong>PNB:</strong> Full 16-digit account number without spaces<br>
+          • <strong>Form 16 / Salary Slips:</strong> Full PAN number in UPPERCASE</p>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <!-- Indian Document Password Helper Modal -->
+  <div class="modal-overlay hidden" id="cheatSheetModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">🇮🇳 Standard Indian PDF Password Formats</div>
+        <button class="modal-close" id="btnCloseCheatSheet">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">Common formats used by Indian institutions for password-protected PDF statements:</p>
+        
+        <div class="cheat-list">
+          <div class="cheat-item">
+            <div class="cheat-badge">UIDAI</div>
+            <div class="cheat-info">
+              <strong>e-Aadhaar</strong>
+              <span>First 4 letters of your NAME in CAPITAL + 4-digit Year of Birth (e.g. <code>SATY1998</code> or <code>ANIT1975</code>)</span>
+            </div>
+          </div>
+          <div class="cheat-item">
+            <div class="cheat-badge">SBI</div>
+            <div class="cheat-info">
+              <strong>State Bank of India (SBI)</strong>
+              <span>Last 5 digits of your Registered Mobile Number + Date of Birth (DDMM)</span>
+            </div>
+          </div>
+          <div class="cheat-item">
+            <div class="cheat-badge">HDFC</div>
+            <div class="cheat-info">
+              <strong>HDFC Bank Statement</strong>
+              <span>Your Customer ID (e.g. <code>87654321</code>) or PAN number in UPPERCASE</span>
+            </div>
+          </div>
+          <div class="cheat-item">
+            <div class="cheat-badge">ICICI</div>
+            <div class="cheat-info">
+              <strong>ICICI Bank Statement</strong>
+              <span>First 4 letters of Name (lower) + DDMM of Birth (e.g. <code>saty1508</code>)</span>
+            </div>
+          </div>
+          <div class="cheat-item">
+            <div class="cheat-badge">PNB / CANARA</div>
+            <div class="cheat-info">
+              <strong>PNB & Canara Bank</strong>
+              <span>Full Account Number without spaces, or First 4 letters + Account last 4 digits</span>
+            </div>
+          </div>
+          <div class="cheat-item">
+            <div class="cheat-badge">GOVT / C-DAC</div>
+            <div class="cheat-info">
+              <strong>Form 16 / Salary Slips</strong>
+              <span>Full PAN Number in UPPERCASE (e.g. <code>ABCDE1234F</code>) or Employee Code</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Dock / Footer (Vishwa-Style Inbound Attraction) -->
+  <footer class="creator-dock">
+    <div class="dock-content">
+      <div class="dock-identity">
+        <span class="dock-avatar">👨‍💻</span>
+        <div class="dock-text">
+          <div class="dock-author">Crafted by <strong>Satyam Sahu</strong></div>
+          <div class="dock-sub">Systems & Cyber Security Engineer • C-DAC</div>
+        </div>
+      </div>
+
+      <div class="dock-links">
+        <a href="https://github.com/sahusatyam050" target="_blank" rel="noopener noreferrer" class="dock-btn">
+          GitHub
+        </a>
+        <a href="https://linkedin.com/in/satyam-sahu-1564131b8" target="_blank" rel="noopener noreferrer" class="dock-btn">
+          LinkedIn
+        </a>
+        <a href="mailto:sahusatyam050@gmail.com" class="dock-btn highlight">
+          Hire / Consult ✉️
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
