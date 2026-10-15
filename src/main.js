@@ -68,7 +68,7 @@ tabButtons.forEach(btn => {
   });
 });
 
-// ─── 1. UNLOCK & DECRYPT MODULE ──────────────────────────────────────────
+// ─── 1. UNLOCK & DECRYPT MODULE (WITH SMART INDIAN AUTO-SOLVER) ─────────
 
 const unlockDropzone = document.getElementById('unlockDropzone');
 const unlockFileInput = document.getElementById('unlockFileInput');
@@ -79,10 +79,222 @@ const unlockPasswordInput = document.getElementById('unlockPasswordInput');
 const unlockToggleEye = document.getElementById('unlockToggleEye');
 const unlockClearBtn = document.getElementById('unlockClearBtn');
 const btnExecuteUnlock = document.getElementById('btnExecuteUnlock');
+const btnUnlockText = document.getElementById('btnUnlockText');
+
+// Mode Switcher Elements
+const btnModeSmart = document.getElementById('btnModeSmart');
+const btnModeManual = document.getElementById('btnModeManual');
+const smartSolverSection = document.getElementById('smartSolverSection');
+const unlockManualGroup = document.getElementById('unlockManualGroup');
+
+// Preset Elements
+const presetPills = document.querySelectorAll('.preset-pill');
+const formulaCodePreview = document.getElementById('formulaCodePreview');
+
+// Smart Input Fields
+const smartAadhaarName = document.getElementById('smartAadhaarName');
+const smartAadhaarYear = document.getElementById('smartAadhaarYear');
+const smartSbiMobile = document.getElementById('smartSbiMobile');
+const smartSbiDob = document.getElementById('smartSbiDob');
+const smartHdfcId = document.getElementById('smartHdfcId');
+const smartIciciName = document.getElementById('smartIciciName');
+const smartIciciDob = document.getElementById('smartIciciDob');
+const smartForm16Pan = document.getElementById('smartForm16Pan');
+const smartDematPan = document.getElementById('smartDematPan');
+const smartDematDob = document.getElementById('smartDematDob');
 
 let currentUnlockFile = null;
 let currentUnlockBytes = null;
+let currentUnlockMode = 'smart'; // 'smart' | 'manual'
+let activePreset = 'aadhaar';
 
+// Mode Switching: Smart vs Manual
+btnModeSmart.addEventListener('click', () => {
+  currentUnlockMode = 'smart';
+  btnModeSmart.classList.add('active');
+  btnModeManual.classList.remove('active');
+  smartSolverSection.classList.remove('hidden');
+  unlockManualGroup.classList.add('hidden');
+  btnUnlockText.textContent = 'Auto-Decrypt & Download Clean PDF';
+});
+
+btnModeManual.addEventListener('click', () => {
+  currentUnlockMode = 'manual';
+  btnModeManual.classList.add('active');
+  btnModeSmart.classList.remove('active');
+  smartSolverSection.classList.add('hidden');
+  unlockManualGroup.classList.remove('hidden');
+  btnUnlockText.textContent = 'Decrypt & Download Clean PDF';
+  unlockPasswordInput.focus();
+});
+
+// Preset Pills Switching
+function selectPreset(preset) {
+  activePreset = preset;
+  presetPills.forEach(pill => {
+    pill.classList.toggle('active', pill.getAttribute('data-preset') === preset);
+  });
+
+  const allFieldContainers = document.querySelectorAll('.preset-fields');
+  allFieldContainers.forEach(container => container.classList.add('hidden'));
+
+  const activeContainer = document.getElementById(`fields-${preset}`);
+  if (activeContainer) activeContainer.classList.remove('hidden');
+
+  updateFormulaPreview();
+}
+
+presetPills.forEach(pill => {
+  pill.addEventListener('click', () => {
+    selectPreset(pill.getAttribute('data-preset'));
+  });
+});
+
+// Live Formula Preview Computation
+function updateFormulaPreview() {
+  let previewText = '';
+
+  switch (activePreset) {
+    case 'aadhaar': {
+      const name = smartAadhaarName.value.trim();
+      const year = smartAadhaarYear.value.trim();
+      const prefix = name ? name.slice(0, 4).toUpperCase() : 'NAME';
+      const suffix = year || 'YYYY';
+      previewText = `${prefix}${suffix}`;
+      break;
+    }
+    case 'sbi': {
+      const mob = smartSbiMobile.value.trim();
+      const dob = smartSbiDob.value.trim();
+      const mobPart = mob ? mob.slice(-5) : '12345';
+      const dobPart = dob || 'DDMM';
+      previewText = `${mobPart}${dobPart}`;
+      break;
+    }
+    case 'hdfc': {
+      const id = smartHdfcId.value.trim();
+      previewText = id ? id.toUpperCase() : 'CUSTOMER_ID';
+      break;
+    }
+    case 'icici': {
+      const name = smartIciciName.value.trim();
+      const dob = smartIciciDob.value.trim();
+      const prefix = name ? name.slice(0, 4).toLowerCase() : 'name';
+      const suffix = dob || 'DDMM';
+      previewText = `${prefix}${suffix}`;
+      break;
+    }
+    case 'form16': {
+      const pan = smartForm16Pan.value.trim();
+      previewText = pan ? pan.toUpperCase() : 'PAN_NUMBER';
+      break;
+    }
+    case 'demat': {
+      const pan = smartDematPan.value.trim().toUpperCase();
+      const dob = smartDematDob.value.trim();
+      previewText = pan && dob ? `${pan} / ${dob}` : (pan || dob || 'PAN / DOB');
+      break;
+    }
+  }
+
+  if (formulaCodePreview) formulaCodePreview.textContent = previewText;
+}
+
+// Attach live input listeners to all smart fields
+[
+  smartAadhaarName, smartAadhaarYear,
+  smartSbiMobile, smartSbiDob,
+  smartHdfcId,
+  smartIciciName, smartIciciDob,
+  smartForm16Pan,
+  smartDematPan, smartDematDob
+].forEach(input => {
+  if (input) {
+    input.addEventListener('input', updateFormulaPreview);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') btnExecuteUnlock.click();
+    });
+  }
+});
+
+// Compute Candidate Passwords for Smart Auto-Solver
+function getSmartCandidates() {
+  const candidates = [];
+
+  switch (activePreset) {
+    case 'aadhaar': {
+      const rawName = smartAadhaarName.value.trim();
+      const rawYear = smartAadhaarYear.value.trim();
+      if (!rawName || !rawYear) {
+        throw new Error('Please enter both your First Name and 4-digit Birth Year.');
+      }
+      const cleanName = rawName.replace(/[^a-zA-Z]/g, '');
+      const cleanYear = rawYear.replace(/[^0-9]/g, '');
+      
+      // Candidate 1: Standard UIDAI 4 letters UPPER + YYYY
+      candidates.push(cleanName.slice(0, 4).toUpperCase() + cleanYear);
+      // Candidate 2: lowercase variation
+      candidates.push(cleanName.slice(0, 4).toLowerCase() + cleanYear);
+      // Candidate 3: Short name (if name has 2 or 3 letters)
+      if (cleanName.length < 4) {
+        candidates.push(cleanName.toUpperCase() + cleanYear);
+      }
+      // Candidate 4: 2-digit year fallback
+      if (cleanYear.length === 4) {
+        candidates.push(cleanName.slice(0, 4).toUpperCase() + cleanYear.slice(2));
+      }
+      break;
+    }
+    case 'sbi': {
+      const mob = smartSbiMobile.value.trim().replace(/[^0-9]/g, '');
+      const dob = smartSbiDob.value.trim().replace(/[^0-9]/g, '');
+      if (!mob || !dob) {
+        throw new Error('Please enter your Registered Mobile and Date of Birth (DDMM).');
+      }
+      // Candidate 1: Last 5 digits + DDMM
+      candidates.push(mob.slice(-5) + dob);
+      // Candidate 2: Full mobile + DDMM
+      candidates.push(mob + dob);
+      break;
+    }
+    case 'hdfc': {
+      const id = smartHdfcId.value.trim();
+      if (!id) throw new Error('Please enter your Customer ID or PAN.');
+      candidates.push(id);
+      candidates.push(id.toUpperCase());
+      candidates.push(id.toLowerCase());
+      break;
+    }
+    case 'icici': {
+      const name = smartIciciName.value.trim().replace(/[^a-zA-Z]/g, '');
+      const dob = smartIciciDob.value.trim().replace(/[^0-9]/g, '');
+      if (!name || !dob) throw new Error('Please enter first 4 letters of name and DDMM.');
+      candidates.push(name.slice(0, 4).toLowerCase() + dob);
+      candidates.push(name.slice(0, 4).toUpperCase() + dob);
+      break;
+    }
+    case 'form16': {
+      const pan = smartForm16Pan.value.trim();
+      if (!pan) throw new Error('Please enter your 10-digit PAN number.');
+      candidates.push(pan.toUpperCase());
+      candidates.push(pan.toLowerCase());
+      break;
+    }
+    case 'demat': {
+      const pan = smartDematPan.value.trim().toUpperCase();
+      const dob = smartDematDob.value.trim();
+      if (!pan && !dob) throw new Error('Please enter either your PAN or Date of Birth.');
+      if (pan) candidates.push(pan);
+      if (dob) candidates.push(dob);
+      if (pan && dob) candidates.push(pan + dob);
+      break;
+    }
+  }
+
+  return candidates;
+}
+
+// Drag & Drop Handling
 unlockDropzone.addEventListener('click', () => unlockFileInput.click());
 unlockDropzone.addEventListener('dragover', (e) => {
   e.preventDefault();
@@ -119,9 +331,13 @@ async function handleUnlockFile(file) {
   unlockActionCard.classList.remove('hidden');
 
   if (encrypted) {
-    unlockPasswordInput.value = '';
-    unlockPasswordInput.focus();
-    showToast('Encrypted document detected! Enter password to unlock.', 'info');
+    if (currentUnlockMode === 'smart') {
+      if (activePreset === 'aadhaar' && smartAadhaarName) smartAadhaarName.focus();
+    } else {
+      unlockPasswordInput.value = '';
+      unlockPasswordInput.focus();
+    }
+    showToast('Encrypted document detected! Smart Solver is ready.', 'info');
   } else {
     showToast('This PDF is already unprotected. You can still re-save a clean copy.', 'info');
   }
@@ -141,25 +357,56 @@ unlockToggleEye.addEventListener('click', () => {
   unlockToggleEye.textContent = isPass ? '🙈' : '👁️';
 });
 
+// Decrypt Execution with Smart Auto-Solver Multi-Candidate Engine
 btnExecuteUnlock.addEventListener('click', async () => {
   if (!currentUnlockBytes) return;
-
-  const password = unlockPasswordInput.value.trim();
   const encrypted = isEncrypted(currentUnlockBytes);
 
   btnExecuteUnlock.disabled = true;
-  btnExecuteUnlock.innerHTML = '<span>⚡</span> <span>Decrypting inside browser...</span>';
+  btnExecuteUnlock.innerHTML = '<span>⚡</span> <span>Analyzing & Decrypting in RAM...</span>';
 
   try {
-    let unlockedBytes;
+    let unlockedBytes = null;
+    let successfulKey = '';
+
     if (encrypted) {
-      if (!password) {
-        showToast('Please enter the document password.', 'error');
-        btnExecuteUnlock.disabled = false;
-        btnExecuteUnlock.innerHTML = '<span>⚡</span> <span>Decrypt & Download Clean PDF</span>';
-        return;
+      if (currentUnlockMode === 'smart') {
+        let candidateList = [];
+        try {
+          candidateList = getSmartCandidates();
+        } catch (inputErr) {
+          showToast(inputErr.message, 'error');
+          btnExecuteUnlock.disabled = false;
+          btnExecuteUnlock.innerHTML = '<span>⚡</span> <span id="btnUnlockText">Auto-Decrypt & Download Clean PDF</span>';
+          return;
+        }
+
+        let solved = false;
+        for (const candidate of candidateList) {
+          try {
+            unlockedBytes = await decryptPDF(currentUnlockBytes, candidate);
+            successfulKey = candidate;
+            solved = true;
+            break;
+          } catch (e) {
+            // try next candidate variation
+          }
+        }
+
+        if (!solved) {
+          throw new Error('Auto-solver could not unlock with the provided details. Please verify your Name/DOB or switch to Standard Password.');
+        }
+      } else {
+        const password = unlockPasswordInput.value.trim();
+        if (!password) {
+          showToast('Please enter the document password.', 'error');
+          btnExecuteUnlock.disabled = false;
+          btnExecuteUnlock.innerHTML = '<span>⚡</span> <span>Decrypt & Download Clean PDF</span>';
+          return;
+        }
+        unlockedBytes = await decryptPDF(currentUnlockBytes, password);
+        successfulKey = password;
       }
-      unlockedBytes = await decryptPDF(currentUnlockBytes, password);
     } else {
       unlockedBytes = currentUnlockBytes;
     }
@@ -167,13 +414,19 @@ btnExecuteUnlock.addEventListener('click', async () => {
     const cleanName = currentUnlockFile.name.replace(/\.pdf$/i, '_unlocked.pdf');
     downloadFile(unlockedBytes, cleanName);
     fireCelebration();
-    showToast(`Successfully unlocked & saved as ${cleanName}!`, 'success');
+
+    const successMsg = successfulKey 
+      ? `Unlocked successfully using key "${successfulKey}" & saved!`
+      : `Successfully saved as ${cleanName}!`;
+    showToast(successMsg, 'success');
   } catch (err) {
     console.error('Decryption failed:', err);
-    showToast('Incorrect password or unsupported encryption format. Please verify password.', 'error');
+    showToast(err.message || 'Incorrect password or unsupported encryption format.', 'error');
   } finally {
     btnExecuteUnlock.disabled = false;
-    btnExecuteUnlock.innerHTML = '<span>⚡</span> <span>Decrypt & Download Clean PDF</span>';
+    btnExecuteUnlock.innerHTML = currentUnlockMode === 'smart' 
+      ? '<span>⚡</span> <span>Auto-Decrypt & Download Clean PDF</span>'
+      : '<span>⚡</span> <span>Decrypt & Download Clean PDF</span>';
   }
 });
 
@@ -694,3 +947,49 @@ cheatSheetModal.addEventListener('click', (e) => {
 document.getElementById('airgapBadge').addEventListener('click', () => {
   showToast('🛡️ Security Verified: All cryptography is computed in RAM using WebAssembly. 0 outbound network requests.', 'success');
 });
+
+// Air-Gap Wi-Fi Disconnect Challenge Button
+const btnTestAirgapProof = document.getElementById('btnTestAirgapProof');
+if (btnTestAirgapProof) {
+  btnTestAirgapProof.addEventListener('click', () => {
+    const isOnline = navigator.onLine;
+    showToast(
+      isOnline 
+        ? '✈️ Challenge Ready: Disconnect your Wi-Fi or turn on Airplane mode! VaultPDF continues to decrypt & process PDFs seamlessly offline.'
+        : '🟢 Offline Confirmed! You are completely air-gapped. Test decryption right now — 0 bytes leave your device.',
+      'success'
+    );
+  });
+}
+
+// ─── PROGRAMMATIC HASH ROUTING (#aadhaar, #sbi, #hdfc, #form16, etc.) ────
+
+function handleHashRouting() {
+  const hash = window.location.hash.toLowerCase().replace('#', '');
+  if (!hash) return;
+
+  const validPresets = ['aadhaar', 'sbi', 'hdfc', 'icici', 'form16', 'demat'];
+  if (validPresets.includes(hash)) {
+    // Switch to Unlock tab
+    const unlockTabBtn = document.querySelector('[data-tab="tab-unlock"]');
+    if (unlockTabBtn) unlockTabBtn.click();
+
+    // Select Preset
+    selectPreset(hash);
+    btnModeSmart.click();
+
+    // Scroll smoothly to dropzone
+    const workstation = document.querySelector('.workstation-container');
+    if (workstation) workstation.scrollIntoView({ behavior: 'smooth' });
+
+    showToast(`🇮🇳 Loaded ${hash.toUpperCase()} Smart Preset! Drop your locked document above.`, 'info');
+  } else if (['protect', 'merge', 'split', 'rotate'].includes(hash)) {
+    const tabBtn = document.querySelector(`[data-tab="tab-${hash}"]`);
+    if (tabBtn) tabBtn.click();
+  }
+}
+
+window.addEventListener('hashchange', handleHashRouting);
+// Run on initial load
+handleHashRouting();
+

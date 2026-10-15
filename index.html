@@ -181,6 +181,17 @@
   <!-- Main Workstation -->
   <main class="workstation-container">
 
+    <!-- Air-Gap Wi-Fi Disconnect Challenge Banner -->
+    <div class="airgap-challenge-banner" id="airgapChallenge">
+      <div class="challenge-left">
+        <span class="challenge-icon">✈️</span>
+        <div class="challenge-text">
+          <strong>The Air-Gap Challenge:</strong> Disconnect your Wi-Fi or turn on Airplane mode right now. Decrypt your Aadhaar offline. 0 packets sent. Works behind corporate Zscaler & Fortinet firewalls!
+        </div>
+      </div>
+      <button type="button" class="btn-challenge" id="btnTestAirgapProof">Test Offline Proof 🛡️</button>
+    </div>
+
     <!-- 1. UNLOCK / DECRYPT TAB -->
     <div class="tool-panel active" id="tab-unlock">
       <div class="panel-header">
@@ -219,13 +230,141 @@
           <button class="btn-icon-danger" id="unlockClearBtn" title="Remove file">✕</button>
         </div>
 
-        <div class="password-input-group" id="unlockPasswordGroup">
+        <!-- Mode Switcher: Smart Indian Document Auto-Solver vs Manual -->
+        <div class="unlock-mode-switch">
+          <button type="button" class="mode-switch-btn active" id="btnModeSmart">
+            <span>🇮🇳 Smart Document Auto-Solver</span>
+            <span class="smart-tag">Zero Guesswork</span>
+          </button>
+          <button type="button" class="mode-switch-btn" id="btnModeManual">
+            <span>Standard Password</span>
+          </button>
+        </div>
+
+        <!-- SMART INDIAN DOCUMENT SOLVER SECTION -->
+        <div class="smart-solver-section" id="smartSolverSection">
+          <div class="preset-label">Select Document Type:</div>
+          <div class="preset-pills" id="presetPills">
+            <button type="button" class="preset-pill active" data-preset="aadhaar">
+              <span class="pill-icon">🪪</span>
+              <span>e-Aadhaar (UIDAI)</span>
+            </button>
+            <button type="button" class="preset-pill" data-preset="sbi">
+              <span class="pill-icon">🏦</span>
+              <span>SBI Statement</span>
+            </button>
+            <button type="button" class="preset-pill" data-preset="hdfc">
+              <span class="pill-icon">🏦</span>
+              <span>HDFC Statement</span>
+            </button>
+            <button type="button" class="preset-pill" data-preset="icici">
+              <span class="pill-icon">🏦</span>
+              <span>ICICI Statement</span>
+            </button>
+            <button type="button" class="preset-pill" data-preset="form16">
+              <span class="pill-icon">📄</span>
+              <span>Form 16 / Salary</span>
+            </button>
+            <button type="button" class="preset-pill" data-preset="demat">
+              <span class="pill-icon">📈</span>
+              <span>CDSL/NSDL CAS</span>
+            </button>
+          </div>
+
+          <!-- Dynamic Preset Input Fields -->
+          <div class="smart-form-grid" id="smartFormGrid">
+            <!-- 1. e-Aadhaar inputs -->
+            <div class="preset-fields" id="fields-aadhaar">
+              <div class="smart-field-row">
+                <div class="smart-input-box">
+                  <label for="smartAadhaarName">First Name (as on Aadhaar)</label>
+                  <input type="text" id="smartAadhaarName" placeholder="e.g. Satyam or Suresh" autocomplete="off" />
+                </div>
+                <div class="smart-input-box">
+                  <label for="smartAadhaarYear">Year of Birth (YYYY)</label>
+                  <input type="text" id="smartAadhaarYear" placeholder="e.g. 1998" maxlength="4" autocomplete="off" />
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. SBI inputs -->
+            <div class="preset-fields hidden" id="fields-sbi">
+              <div class="smart-field-row">
+                <div class="smart-input-box">
+                  <label for="smartSbiMobile">Registered Mobile (Last 5 Digits or Full)</label>
+                  <input type="text" id="smartSbiMobile" placeholder="e.g. 25707" maxlength="10" autocomplete="off" />
+                </div>
+                <div class="smart-input-box">
+                  <label for="smartSbiDob">Date & Month of Birth (DDMM)</label>
+                  <input type="text" id="smartSbiDob" placeholder="e.g. 1508 (15 Aug)" maxlength="4" autocomplete="off" />
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. HDFC inputs -->
+            <div class="preset-fields hidden" id="fields-hdfc">
+              <div class="smart-field-row">
+                <div class="smart-input-box full-width">
+                  <label for="smartHdfcId">NetBanking Customer ID (or PAN in CAPS)</label>
+                  <input type="text" id="smartHdfcId" placeholder="e.g. 87654321 or ABCDE1234F" autocomplete="off" />
+                </div>
+              </div>
+            </div>
+
+            <!-- 4. ICICI inputs -->
+            <div class="preset-fields hidden" id="fields-icici">
+              <div class="smart-field-row">
+                <div class="smart-input-box">
+                  <label for="smartIciciName">First 4 Letters of Name (lower)</label>
+                  <input type="text" id="smartIciciName" placeholder="e.g. saty" maxlength="4" autocomplete="off" />
+                </div>
+                <div class="smart-input-box">
+                  <label for="smartIciciDob">Date & Month of Birth (DDMM)</label>
+                  <input type="text" id="smartIciciDob" placeholder="e.g. 1508" maxlength="4" autocomplete="off" />
+                </div>
+              </div>
+            </div>
+
+            <!-- 5. Form 16 inputs -->
+            <div class="preset-fields hidden" id="fields-form16">
+              <div class="smart-field-row">
+                <div class="smart-input-box full-width">
+                  <label for="smartForm16Pan">10-Digit PAN Number</label>
+                  <input type="text" id="smartForm16Pan" placeholder="e.g. ABCDE1234F" maxlength="10" autocomplete="off" />
+                </div>
+              </div>
+            </div>
+
+            <!-- 6. Demat CAS inputs -->
+            <div class="preset-fields hidden" id="fields-demat">
+              <div class="smart-field-row">
+                <div class="smart-input-box">
+                  <label for="smartDematPan">10-Digit PAN</label>
+                  <input type="text" id="smartDematPan" placeholder="e.g. ABCDE1234F" maxlength="10" autocomplete="off" />
+                </div>
+                <div class="smart-input-box">
+                  <label for="smartDematDob">Date of Birth (DDMMYYYY)</label>
+                  <input type="text" id="smartDematDob" placeholder="e.g. 15081998" maxlength="8" autocomplete="off" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Live Formula Preview -->
+          <div class="formula-preview-bar">
+            <span class="formula-label">Auto-Computed Formula:</span>
+            <code class="formula-code" id="formulaCodePreview">SATY1998</code>
+          </div>
+        </div>
+
+        <!-- MANUAL PASSWORD INPUT (Hidden when in smart mode) -->
+        <div class="password-input-group hidden" id="unlockManualGroup">
           <label for="unlockPasswordInput" class="input-label">
             <span>Enter Document Password</span>
             <button type="button" class="label-link" id="btnHelpAadhaar">Common Formats 💡</button>
           </label>
           <div class="input-wrapper">
-            <input type="password" id="unlockPasswordInput" placeholder="e.g. SATY1998 (First 4 letters + Year of Birth)" autocomplete="off" />
+            <input type="password" id="unlockPasswordInput" placeholder="Enter password..." autocomplete="off" />
             <button type="button" class="btn-toggle-eye" id="unlockToggleEye" title="Show/Hide Password">👁️</button>
           </div>
         </div>
@@ -233,7 +372,7 @@
         <div class="action-btn-row">
           <button class="btn-primary" id="btnExecuteUnlock">
             <span class="btn-icon">⚡</span>
-            <span>Decrypt & Download Clean PDF</span>
+            <span id="btnUnlockText">Auto-Decrypt & Download Clean PDF</span>
           </button>
         </div>
       </div>
