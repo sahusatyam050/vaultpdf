@@ -2,4 +2,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://vaultpdf.vercel.app/sitemap.xml
+Sitemap: https://vaultpdf-beryl.vercel.app/sitemap.xml
