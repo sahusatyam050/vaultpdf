@@ -522,7 +522,7 @@ btnExecuteProtect.addEventListener('click', async () => {
   }
 });
 
-// ─── 3. MERGE MODULE ─────────────────────────────────────────────────────
+// ─── 3. MERGE MODULE (PDFs & IMAGES) ──────────────────────────────────────
 
 const mergeDropzone = document.getElementById('mergeDropzone');
 const mergeFileInput = document.getElementById('mergeFileInput');
@@ -532,8 +532,104 @@ const mergeSummary = document.getElementById('mergeSummary');
 const mergeAddMoreBtn = document.getElementById('mergeAddMoreBtn');
 const btnExecuteMerge = document.getElementById('btnExecuteMerge');
 
-let mergeFiles = []; // Array of { file, bytes, pageCount }
+let mergeFiles = []; // Array of { type: 'pdf'|'image', file, bytes, pageCount, width?, height?, thumbnailUrl? }
+let draggedMergeIndex = null;
 
+// Helpers for Image Processing in Merge
+function getImageMetadata(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      resolve({
+        width: img.naturalWidth || img.width || 800,
+        height: img.naturalHeight || img.height || 600,
+        thumbnailUrl: url
+      });
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error(`Failed to load image: ${file.name}`));
+    };
+    img.src = url;
+  });
+}
+
+function convertImageToJpgBytes(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let width = img.naturalWidth || img.width;
+      let height = img.naturalHeight || img.height;
+
+      // Optimize oversized phone photos (> 3000px) for high-speed client processing
+      const maxDim = 3000;
+      if (Math.max(width, height) > maxDim) {
+        const scale = maxDim / Math.max(width, height);
+        width = Math.round(width * scale);
+        height = Math.round(height * scale);
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+
+      // Fill solid white background so transparent PNG/WebP images don't turn black in PDF
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, width, height);
+      ctx.drawImage(img, 0, 0, width, height);
+
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          reject(new Error('Failed to convert image to JPG blob'));
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = () => resolve(new Uint8Array(reader.result));
+        reader.onerror = reject;
+        reader.readAsArrayBuffer(blob);
+      }, 'image/jpeg', 0.94);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error(`Failed to load image: ${file.name}`));
+    };
+    img.src = url;
+  });
+}
+
+async function getEmbeddedImageForDoc(mergedDoc, item) {
+  const name = item.file.name.toLowerCase();
+  const isJpg = item.file.type === 'image/jpeg' || item.file.type === 'image/jpg' || /\.jpe?g$/i.test(name);
+  const isPng = item.file.type === 'image/png' || /\.png$/i.test(name);
+
+  // 1. Try direct embedding for standard JPG
+  if (isJpg) {
+    try {
+      return await mergedDoc.embedJpg(item.bytes);
+    } catch (e) {
+      console.warn(`Direct embedJpg fallback for ${item.file.name}:`, e);
+    }
+  }
+
+  // 2. Try direct embedding for standard PNG
+  if (isPng) {
+    try {
+      return await mergedDoc.embedPng(item.bytes);
+    } catch (e) {
+      console.warn(`Direct embedPng fallback for ${item.file.name}:`, e);
+    }
+  }
+
+  // 3. Fallback for WebP, GIF, BMP, or non-standard profiles: re-encode via canvas
+  const fallbackJpgBytes = await convertImageToJpgBytes(item.file);
+  return await mergedDoc.embedJpg(fallbackJpgBytes);
+}
+
+// Event Listeners for Dropzone & File Input
 mergeDropzone.addEventListener('click', () => mergeFileInput.click());
 mergeDropzone.addEventListener('dragover', (e) => {
   e.preventDefault();
@@ -555,30 +651,65 @@ mergeFileInput.addEventListener('change', (e) => {
 mergeAddMoreBtn.addEventListener('click', () => mergeFileInput.click());
 
 async function handleMergeFiles(files) {
-  const validPdfs = files.filter(f => f.name.toLowerCase().endsWith('.pdf'));
-  if (validPdfs.length === 0) {
-    showToast('Please select valid PDF files.', 'error');
+  const isSupportedFile = (f) => {
+    const name = f.name.toLowerCase();
+    const type = f.type.toLowerCase();
+    return (
+      type === 'application/pdf' ||
+      type.startsWith('image/') ||
+      /\.(pdf|jpe?g|png|webp|bmp|gif)$/i.test(name)
+    );
+  };
+
+  const validFiles = files.filter(isSupportedFile);
+  if (validFiles.length === 0) {
+    showToast('Please select valid PDF documents or images (JPG, PNG, WebP).', 'error');
     return;
   }
 
-  for (const file of validPdfs) {
-    try {
-      const arrayBuffer = await file.arrayBuffer();
-      const bytes = new Uint8Array(arrayBuffer);
-      
-      // Load with pdf-lib to get page count
-      const doc = await PDFDocument.load(bytes, { ignoreEncryption: true });
-      mergeFiles.push({
-        file,
-        bytes,
-        pageCount: doc.getPageCount()
-      });
-    } catch (err) {
-      console.warn(`Could not parse ${file.name}:`, err);
-      showToast(`Warning: ${file.name} might be password protected. Please unlock it first.`, 'error');
+  for (const file of validFiles) {
+    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+
+    if (isPdf) {
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const bytes = new Uint8Array(arrayBuffer);
+        const doc = await PDFDocument.load(bytes, { ignoreEncryption: true });
+        mergeFiles.push({
+          type: 'pdf',
+          file,
+          bytes,
+          pageCount: doc.getPageCount(),
+          thumbnailUrl: null
+        });
+      } catch (err) {
+        console.warn(`Could not parse ${file.name}:`, err);
+        showToast(`Warning: ${file.name} might be password protected. Please unlock it first.`, 'error');
+      }
+    } else {
+      // Image file (JPG, PNG, WebP, BMP, GIF)
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const bytes = new Uint8Array(arrayBuffer);
+        const meta = await getImageMetadata(file);
+        mergeFiles.push({
+          type: 'image',
+          file,
+          bytes,
+          pageCount: 1,
+          width: meta.width,
+          height: meta.height,
+          thumbnailUrl: meta.thumbnailUrl
+        });
+      } catch (err) {
+        console.warn(`Could not load image ${file.name}:`, err);
+        showToast(`Warning: Could not process image ${file.name}.`, 'error');
+      }
     }
   }
 
+  // Clear input value so same files can be re-selected if desired
+  mergeFileInput.value = '';
   renderMergeList();
 }
 
@@ -594,16 +725,43 @@ function renderMergeList() {
   mergeFileList.innerHTML = '';
 
   let totalPages = 0;
+  let pdfCount = 0;
+  let imgCount = 0;
+
   mergeFiles.forEach((item, index) => {
     totalPages += item.pageCount;
+    if (item.type === 'image') imgCount++;
+    else pdfCount++;
+
     const row = document.createElement('div');
     row.className = 'merge-file-row';
+    row.draggable = true;
+    row.setAttribute('data-idx', index);
+
+    const isImage = item.type === 'image';
+    const thumbHtml = isImage && item.thumbnailUrl
+      ? `<div class="merge-thumb-wrap"><img src="${item.thumbnailUrl}" alt="thumb" /></div>`
+      : `<div class="merge-thumb-wrap pdf-icon">📄</div>`;
+
+    const typeBadgeHtml = isImage
+      ? `<span class="badge-tag-type image">Image</span>`
+      : `<span class="badge-tag-type pdf">PDF</span>`;
+
+    const subDetail = isImage
+      ? `${formatBytes(item.file.size)} • 1 Page • ${item.width}×${item.height}px`
+      : `${formatBytes(item.file.size)} • ${item.pageCount} ${item.pageCount === 1 ? 'page' : 'pages'}`;
+
     row.innerHTML = `
       <div class="merge-file-row-left">
+        <span class="drag-handle" title="Drag to reorder">⋮⋮</span>
         <div class="file-order-badge">${index + 1}</div>
+        ${thumbHtml}
         <div class="merge-file-info">
-          <div class="merge-file-name" title="${item.file.name}">${item.file.name}</div>
-          <div class="merge-file-size">${formatBytes(item.file.size)} • ${item.pageCount} ${item.pageCount === 1 ? 'page' : 'pages'}</div>
+          <div class="merge-file-name-row">
+            <span class="merge-file-name" title="${item.file.name}">${item.file.name}</span>
+            ${typeBadgeHtml}
+          </div>
+          <div class="merge-file-size">${subDetail}</div>
         </div>
       </div>
       <div class="merge-row-actions">
@@ -612,15 +770,54 @@ function renderMergeList() {
         <button class="btn-icon-danger btn-remove-merge" data-idx="${index}" title="Remove file">✕</button>
       </div>
     `;
+
+    // Drag-and-drop reordering handlers
+    row.addEventListener('dragstart', (e) => {
+      draggedMergeIndex = index;
+      row.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', index);
+    });
+
+    row.addEventListener('dragend', () => {
+      row.classList.remove('dragging');
+      mergeFileList.querySelectorAll('.merge-file-row').forEach(r => r.classList.remove('drag-over'));
+      draggedMergeIndex = null;
+    });
+
+    row.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      row.classList.add('drag-over');
+    });
+
+    row.addEventListener('dragleave', () => {
+      row.classList.remove('drag-over');
+    });
+
+    row.addEventListener('drop', (e) => {
+      e.preventDefault();
+      row.classList.remove('drag-over');
+      if (draggedMergeIndex !== null && draggedMergeIndex !== index) {
+        const movedItem = mergeFiles.splice(draggedMergeIndex, 1)[0];
+        mergeFiles.splice(index, 0, movedItem);
+        renderMergeList();
+      }
+    });
+
     mergeFileList.appendChild(row);
   });
 
-  mergeSummary.textContent = `${mergeFiles.length} files selected • ${totalPages} total pages`;
+  const summaryParts = [];
+  if (pdfCount > 0) summaryParts.push(`${pdfCount} ${pdfCount === 1 ? 'PDF' : 'PDFs'}`);
+  if (imgCount > 0) summaryParts.push(`${imgCount} ${imgCount === 1 ? 'Image' : 'Images'}`);
+
+  mergeSummary.textContent = `${mergeFiles.length} files (${summaryParts.join(', ')}) • ${totalPages} total ${totalPages === 1 ? 'page' : 'pages'}`;
 
   // Attach button events
   mergeFileList.querySelectorAll('.btn-move-up').forEach(btn => {
     btn.addEventListener('click', (e) => {
-      const idx = parseInt(e.target.getAttribute('data-idx'));
+      const idx = parseInt(e.currentTarget.getAttribute('data-idx'));
       const temp = mergeFiles[idx];
       mergeFiles[idx] = mergeFiles[idx - 1];
       mergeFiles[idx - 1] = temp;
@@ -630,7 +827,7 @@ function renderMergeList() {
 
   mergeFileList.querySelectorAll('.btn-move-down').forEach(btn => {
     btn.addEventListener('click', (e) => {
-      const idx = parseInt(e.target.getAttribute('data-idx'));
+      const idx = parseInt(e.currentTarget.getAttribute('data-idx'));
       const temp = mergeFiles[idx];
       mergeFiles[idx] = mergeFiles[idx + 1];
       mergeFiles[idx + 1] = temp;
@@ -640,8 +837,11 @@ function renderMergeList() {
 
   mergeFileList.querySelectorAll('.btn-remove-merge').forEach(btn => {
     btn.addEventListener('click', (e) => {
-      const idx = parseInt(e.target.getAttribute('data-idx'));
-      mergeFiles.splice(idx, 1);
+      const idx = parseInt(e.currentTarget.getAttribute('data-idx'));
+      const removed = mergeFiles.splice(idx, 1)[0];
+      if (removed && removed.thumbnailUrl) {
+        URL.revokeObjectURL(removed.thumbnailUrl);
+      }
       renderMergeList();
     });
   });
@@ -649,20 +849,50 @@ function renderMergeList() {
 
 btnExecuteMerge.addEventListener('click', async () => {
   if (mergeFiles.length < 2) {
-    showToast('Please add at least 2 PDF files to merge.', 'error');
+    showToast('Please add at least 2 files (PDFs or images) to merge.', 'error');
     return;
   }
 
   btnExecuteMerge.disabled = true;
-  btnExecuteMerge.innerHTML = '<span>⚡</span> <span>Merging files in browser...</span>';
+  btnExecuteMerge.innerHTML = '<span>⚡</span> <span>Merging PDFs & Images in browser...</span>';
 
   try {
     const mergedDoc = await PDFDocument.create();
 
     for (const item of mergeFiles) {
-      const doc = await PDFDocument.load(item.bytes);
-      const copiedPages = await mergedDoc.copyPages(doc, doc.getPageIndices());
-      copiedPages.forEach(p => mergedDoc.addPage(p));
+      if (item.type === 'pdf') {
+        const doc = await PDFDocument.load(item.bytes);
+        const copiedPages = await mergedDoc.copyPages(doc, doc.getPageIndices());
+        copiedPages.forEach(p => mergedDoc.addPage(p));
+      } else if (item.type === 'image') {
+        // Embed Image into clean A4 Page
+        const embeddedImage = await getEmbeddedImageForDoc(mergedDoc, item);
+        
+        // Choose Landscape vs Portrait based on image aspect ratio
+        const isLandscape = embeddedImage.width > embeddedImage.height;
+        const pageWidth = isLandscape ? 841.89 : 595.28;
+        const pageHeight = isLandscape ? 595.28 : 841.89;
+
+        // 20pt margin around the page
+        const margin = 20;
+        const maxW = pageWidth - margin * 2;
+        const maxH = pageHeight - margin * 2;
+
+        const scale = Math.min(maxW / embeddedImage.width, maxH / embeddedImage.height);
+        const renderW = embeddedImage.width * scale;
+        const renderH = embeddedImage.height * scale;
+
+        const x = (pageWidth - renderW) / 2;
+        const y = (pageHeight - renderH) / 2;
+
+        const page = mergedDoc.addPage([pageWidth, pageHeight]);
+        page.drawImage(embeddedImage, {
+          x,
+          y,
+          width: renderW,
+          height: renderH,
+        });
+      }
     }
 
     const mergedBytes = await mergedDoc.save();
@@ -671,7 +901,7 @@ btnExecuteMerge.addEventListener('click', async () => {
     showToast(`Successfully merged ${mergeFiles.length} files into one PDF!`, 'success');
   } catch (err) {
     console.error('Merge failed:', err);
-    showToast('Error merging documents. One of the files might be encrypted.', 'error');
+    showToast('Error merging documents. One of the files might be corrupted or encrypted.', 'error');
   } finally {
     btnExecuteMerge.disabled = false;
     btnExecuteMerge.innerHTML = '<span>⚡</span> <span>Merge & Download Combined PDF</span>';

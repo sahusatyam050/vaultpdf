@@ -82,10 +82,10 @@
       },
       {
         "@type": "Question",
-        "name": "Can I merge multiple confidential PDFs without file size limits?",
+        "name": "Can I merge multiple confidential PDFs and images (JPG, PNG, WebP) into one document?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Yes. Because there is no network transfer or cloud bandwidth bottleneck, you can merge multiple large PDFs instantly without hitting arbitrary 5 MB or 10 MB cloud limits."
+          "text": "Yes! VaultPDF allows you to combine any combination of multiple PDF documents and image files (JPG, JPEG, PNG, WebP) into a single clean PDF document. You can drag and drop to reorder pages and images in any sequence, processed 100% in local memory with zero file size limits."
         }
       }
     ]
@@ -165,7 +165,7 @@
       </button>
       <button class="tab-btn" data-tab="tab-merge">
         <span class="tab-icon">📑</span>
-        <span class="tab-label">Merge PDFs</span>
+        <span class="tab-label">Merge PDFs & Images</span>
       </button>
       <button class="tab-btn" data-tab="tab-split">
         <span class="tab-icon">✂️</span>
@@ -436,14 +436,14 @@
     <div class="tool-panel" id="tab-merge">
       <div class="panel-header">
         <div class="panel-title-group">
-          <h2>📑 Merge Multiple PDFs into One Document</h2>
-          <p>Combine multiple pages, receipts, Aadhaar + PAN copies, or monthly reports in exact order with drag & drop reordering.</p>
+          <h2>📑 Merge Multiple PDFs & Images into One Document</h2>
+          <p>Combine multiple PDFs, scans, photos, JPGs, PNGs, WebP images, Aadhaar & PAN copies in any order with instant drag & drop reordering.</p>
         </div>
-        <div class="quick-pill">Unlimited Files</div>
+        <div class="quick-pill">PDFs + JPG + PNG + WebP</div>
       </div>
 
       <div class="dropzone" id="mergeDropzone">
-        <input type="file" id="mergeFileInput" accept="application/pdf" multiple class="file-input-hidden" />
+        <input type="file" id="mergeFileInput" accept="application/pdf,image/png,image/jpeg,image/jpg,image/webp,image/bmp,image/gif" multiple class="file-input-hidden" />
         <div class="dropzone-content">
           <div class="dropzone-icon">
             <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
@@ -455,8 +455,8 @@
               <path d="M8 16h.01"/>
             </svg>
           </div>
-          <div class="dropzone-title">Click to browse or drop multiple PDFs here</div>
-          <div class="dropzone-hint">You can select multiple files at once</div>
+          <div class="dropzone-title">Click to browse or drop multiple PDFs and Images here</div>
+          <div class="dropzone-hint">Supports PDFs, JPG, PNG, WebP — select multiple files or drop them together</div>
         </div>
       </div>
 
@@ -468,7 +468,7 @@
         <div class="merge-actions-bar">
           <div class="merge-summary" id="mergeSummary">0 files selected • 0 pages total</div>
           <div class="merge-buttons">
-            <button class="btn-ghost" id="mergeAddMoreBtn">+ Add More Files</button>
+            <button class="btn-ghost" id="mergeAddMoreBtn">+ Add PDFs / Images</button>
             <button class="btn-primary" id="btnExecuteMerge">
               <span class="btn-icon">⚡</span>
               <span>Merge & Download Combined PDF</span>
@@ -648,6 +648,16 @@
         </summary>
         <div class="faq-answer">
           <p>Cloud converters require uploading your entire PDF over the internet to their servers. This exposes your PAN, bank account numbers, balances, employer details, and personal address to third-party databases. VaultPDF eliminates this vulnerability completely by processing files locally on your machine with zero server roundtrips.</p>
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-question">
+          <span>Can I combine multiple PDF documents together with image files (JPG, PNG, WebP)?</span>
+          <span class="faq-chevron">▼</span>
+        </summary>
+        <div class="faq-answer">
+          <p>Yes! In the <strong>Merge PDFs & Images</strong> tab, you can drop any mix of PDF files, camera photos, scanned certificates, and receipts (JPG, PNG, WebP, etc.). VaultPDF automatically fits each image to a standard high-resolution page with preserved aspect ratio, lets you reorder files freely, and merges everything into one professional PDF document with 0 server uploads.</p>
         </div>
       </details>
 
