@@ -30,8 +30,11 @@ When people need to share, print, or email these documents, 95% resort to upload
    * Downloads a clean, permanently unlocked PDF.
 2. 🔒 **Protect & Encrypt:**
    * Encrypts any document with AES-256 military-grade standards.
-3. 📑 **Merge Multiple PDFs:**
-   * Combine multiple files with drag-and-drop order rearrangement and page count tracking.
+3. 📑 **Merge Multiple PDFs & Images:**
+   * Combine multiple PDF documents together with photos, scans, receipts, and identity cards (JPG, JPEG, PNG, WebP, BMP, GIF).
+   * Live image thumbnail previews with pixel dimensions (`width × height`).
+   * HTML5 drag-and-drop reordering with Move Up / Move Down controls.
+   * Auto-fit to standard high-resolution A4 pages (automatic portrait / landscape orientation matching image aspect ratio, white background safeguard for transparent PNGs).
 4. ✂️ **Split & Extract Pages:**
    * Extract custom ranges (e.g. `1-3, 5, 8-10`) into a clean separate document.
 5. 🔄 **Lossless Page Rotation:**
